@@ -1,0 +1,2 @@
+# dealsNotifier
+Amazon deals notifier
