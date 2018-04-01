@@ -1,0 +1,36 @@
+{
+    "name": "braulioRam/dealsNotifier",
+    "description": "Online stores deals notifier",
+    "keywords": ["deals","store", "amazon"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Braulio Ramirez",
+            "email": "braulio.iron@hotmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^5.5",
+        "league/climate": "~2.0",
+        "php-curl-class/php-curl-class": "4.11.*",
+        "ulrichsg/getopt-php": "^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.8.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "braulioRam\\dealsNotifier\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "braulioRam\\dealsNotifier\\Tests\\": "tests/"
+        },
+        "files": ["Stores.php"]
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}
