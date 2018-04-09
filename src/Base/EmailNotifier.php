@@ -73,7 +73,7 @@ Class EmailNotifier extends Notifier {
             $mail->Password = '';
             $mail->Port = 465;
             //Recipients
-            $mail->setFrom($this->sender, 'Mailer');
+            $mail->setFrom($this->sender, 'Price tracker');
             $mail->addAddress($this->email, 'User');
             $mail->addReplyTo($this->sender, 'Mailer');
 
