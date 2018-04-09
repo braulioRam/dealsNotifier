@@ -49,7 +49,7 @@ Class AmazonParser extends WebStoreParser {
         return [
             'name' => $this->getProductName($product),
             'price' => $this->getProductPrice($product),
-            'retail-price' => $this->getProductRetailPrice($product),
+            'retail_price' => $this->getProductRetailPrice($product),
             'url' => $this->getProductUrl($product),
             'prime' => $this->getProductIsPrime($product)
         ];
@@ -65,7 +65,7 @@ Class AmazonParser extends WebStoreParser {
             return '';
         }
 
-        return trim($match['name']);
+        return html_entity_decode(trim($match['name']));
     }
 
 
@@ -78,7 +78,14 @@ Class AmazonParser extends WebStoreParser {
             return '';
         }
 
-        return trim($match['price']);
+        $price = trim($match['price']);
+
+        if (stripos($price, '-') !== false) {
+            $price = explode('-', $price);
+            $price = trim(reset($price));
+        }
+
+        return $price;
     }
 
 

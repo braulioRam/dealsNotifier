@@ -1,0 +1,26 @@
+{% extends '/Email/base.twig' %}
+
+{% block subject %}
+    Here is your {{ report_type }} report {{ user_name }}
+{% endblock %}
+
+{% block body_html %}
+    {% block report_tables %}
+        <table border="1">
+            <thead>
+                {% for field in fields %}
+                    <th>{{ field }}</th>
+                {% endfor %}
+            </thead>
+            <tbody>
+                {% for product in data %}
+                    <tr>
+                        {% for field in fields %}
+                            <th>{{ product.field }}</th>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endblock %}
+{% endblock %}

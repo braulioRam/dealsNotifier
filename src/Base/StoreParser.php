@@ -51,6 +51,22 @@ abstract Class StoreParser {
     }
 
 
+    public function getChanges()
+    {
+        $content = $this->getContents();
+        $products = $this->getProducts($content);
+        $changes = $this->getProductsChanges($products);
+
+        return $changes;
+    }
+
+
+    protected function getProductsChanges(array $products)
+    {
+        return $this->productsTracker->getChanges($products);
+    }
+
+
     protected function getDiscounts(array $products)
     {
         return $this->productsTracker->getPriceDecreases($products);

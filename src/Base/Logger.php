@@ -5,12 +5,24 @@ use League\CLImate\CLImate;
 
 Class Logger {
     protected static $climate;
+    protected static $verbose;
 
 
     public static function log($message, $level)
     {
         $color = static::getColor($level);
+
+        if ($color == 'blue' && !self::$verbose) {
+            return;
+        }
+
         return self::climate()->$color($message);
+    }
+
+
+    public static function verbose($verbose = false)
+    {
+        self::$verbose = $verbose;
     }
 
 
@@ -33,11 +45,11 @@ Class Logger {
             case 'warning':
                 return 'yellow';
                 break;
-            case 'debug':
-                return 'blue';
-                break;
             case 'notice':
                 return 'green';
+                break;
+            case 'debug':
+                return 'blue';
                 break;
             default:
                 return 'log';

@@ -1,0 +1,31 @@
+{% extends 'Email/Reports/report.twig' %}
+
+{% block body_html %}
+    {% block report_tables %}
+        <h2>{{ title }}</h2>
+        <table border="1">
+            <thead>
+                {% for field in fields %}
+                    <th>{{ field|replace({'_':' '})|title }}</th>
+                {% endfor %}
+            </thead>
+            <tbody>
+                {% for product in data %}
+                    <tr>
+                        {% for key, value in product %}
+                            <th>
+                                {% autoescape false %}
+                                    {% if key == 'url' %}
+                                        <a href="{{value}}">Link</a>
+                                    {% else %}
+                                        {{ value|length > 50 ? value|slice(0, 50) ~ '...' : value }}
+                                    {% endif %}
+                                {% endautoescape %}
+                            </th>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endblock %}
+{% endblock %}

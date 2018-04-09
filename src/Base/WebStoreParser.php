@@ -19,9 +19,22 @@ abstract Class WebStoreParser extends StoreParser {
 
     protected function getPageContents($path = null)
     {
+        $tries = 0;
         $path = $path ?: $this->getListingPath();
+        $path = str_ireplace($this->domain, '', $path);
         $url = $this->domain . $path;
+
+        Logger::log('Parsing: ' . $url, 'notice');
+
         $this->curl()->get($url);
+
+        while ($this->curl()->error && $tries < 3) {
+            $tries++;
+            Logger::log("Can't fetch {$url}, retrying {$tries}", 'warning');
+            Logger::log('Avoiding banhammer', 'notice');
+            sleep(2);
+            $this->curl()->get($url);
+        }
 
         if ($this->curl()->error) {
             Logger::log("Can't fetch {$url}", 'error');
@@ -38,8 +51,14 @@ abstract Class WebStoreParser extends StoreParser {
         $nextPagePath = $this->getNextLink($content);
 
         if (false && !empty($nextPagePath)) {
+            Logger::log('Avoiding banhammer', 'notice');
+            sleep(2);
             $content = $this->getPageContents($nextPagePath);
-            $products =  array_merge($this->getProducts($content));
+            $moreProducts = $this->getProducts($content);
+
+            if ($moreProducts) {
+                $products = array_merge($products, $moreProducts);
+            }
         }
 
         return $products;

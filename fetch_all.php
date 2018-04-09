@@ -11,12 +11,12 @@ $verbose = isset($lineParameters['verbose']);
 Logger::verbose($verbose);
 $storeIdentifier = new StoreIdentifier($lineParameters);
 $storeParser = $storeIdentifier->getStoreParser($lineParameters);
-$deals = $storeParser->getDeals($lineParameters);
+$changes = $storeParser->getChanges($lineParameters);
 
-if (empty($deals)) {
+if (empty($changes)) {
     Logger::log('No changes since the last time', 'notice');
     die;
 }
 
-$notifier = new EmailNotifier($deals, $lineParameters);
-$notifier->notify('deals');
+$notifier = new EmailNotifier($changes, $lineParameters);
+$notifier->notify('all');
