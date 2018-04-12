@@ -37,11 +37,13 @@ Class EmailNotifier extends Notifier {
     }
 
 
-    public function notify($type)
+    public function notify($type, $storeName, $listingName)
     {
         $parameters = [];
         $template = $this->twig->loadTemplate('/Email/Reports/'.$type.'.twig');
         $type = ucwords($type);
+        $listing = str_replace(['-', '_'], [' ', ' '], $listing);
+        $listing = ucwords($listing);
 
         if ($type == 'All') {
             $this->prepareData();
@@ -53,6 +55,8 @@ Class EmailNotifier extends Notifier {
 
         $parameters = array_merge($parameters, [
             'data' => $this->data,
+            'store' => $storeName,
+            'listing' => $listingName,
             'title' => $type,
             'report_title' => $type,
             'report_type' => $type,
