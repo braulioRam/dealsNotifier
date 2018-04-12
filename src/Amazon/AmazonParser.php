@@ -4,11 +4,12 @@ namespace braulioRam\dealsNotifier\Amazon;
 use Curl\Curl;
 use braulioRam\dealsNotifier\Base\Logger;
 use braulioRam\dealsNotifier\Base\WebStoreParser;
+use Exception;
 
 Class AmazonParser extends WebStoreParser {
     protected function getNextLink($content)
     {
-        $regex = '@id="pagnNextLink"[^>]+href="(?<next_link>[^"]+)">@is';
+        $regex = '@id="pagnNextLink"[^>]+href="(?<next_link>[^"]+)"@is';
         $url = false;
         $path = '';
 
@@ -17,6 +18,7 @@ Class AmazonParser extends WebStoreParser {
         }
 
         if (!empty($path)) {
+            $path = str_replace('&amp;', '&', $path);
             $url = $this->domain . $path;
         }
 
@@ -30,6 +32,7 @@ Class AmazonParser extends WebStoreParser {
 
         if (!preg_match_all($regex, $content, $matches)) {
             Logger::log("No matches in listing", 'warning');
+            throw new Exception("Exit per source error");
         }
 
         foreach ($matches[0] ?: [] as $product) {

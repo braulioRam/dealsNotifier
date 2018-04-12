@@ -1,7 +1,7 @@
 {% extends '/Email/base.twig' %}
 
 {% block subject %}
-    Here is your {{ report_type }} report {{ user_name }}
+    Here is your "{{ report_type }} {{ store|replace({'-':' '})|title }} {{ listing|replace({'-':' '})|title }}" report {{ user_name }}
 {% endblock %}
 
 {% block body_html %}

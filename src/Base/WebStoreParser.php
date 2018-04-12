@@ -27,18 +27,20 @@ abstract Class WebStoreParser extends StoreParser {
         Logger::log('Parsing: ' . $url, 'notice');
 
         $this->curl()->get($url);
+        $wait = 2;
 
-        while ($this->curl()->error && $tries < 3) {
+        while ($this->curl()->error && $tries < 5) {
             $tries++;
             Logger::log("Can't fetch {$url}, retrying {$tries}", 'warning');
             Logger::log('Avoiding banhammer', 'notice');
-            sleep(2);
+            sleep($wait);
             $this->curl()->get($url);
+            $wait *= 2;
         }
 
         if ($this->curl()->error) {
             Logger::log("Can't fetch {$url}", 'error');
-            return;
+            throw new Exception("Exit per source error");
         }
 
         return $this->curl()->response;
@@ -50,7 +52,7 @@ abstract Class WebStoreParser extends StoreParser {
         $products = $this->getProductsFromPage($content);
         $nextPagePath = $this->getNextLink($content);
 
-        if (false && !empty($nextPagePath)) {
+        if (!empty($nextPagePath)) {
             Logger::log('Avoiding banhammer', 'notice');
             sleep(2);
             $content = $this->getPageContents($nextPagePath);

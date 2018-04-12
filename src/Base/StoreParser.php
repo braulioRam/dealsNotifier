@@ -7,6 +7,7 @@ use League\CLImate\CLImate;
 abstract Class StoreParser {
     protected $listings;
     protected $listing;
+    protected $listingName;
     protected $storeName;
     protected $productsTracker;
 
@@ -35,6 +36,7 @@ abstract Class StoreParser {
             throw new Exception("Listings missing for store " . get_called_class());
         }
 
+        $this->listingName = $this->listing;
         $this->listing = !empty($this->listings[$this->listing])
             ? $this->listings[$this->listing]
             : end($this->listings);
@@ -70,6 +72,18 @@ abstract Class StoreParser {
     protected function getDiscounts(array $products)
     {
         return $this->productsTracker->getPriceDecreases($products);
+    }
+
+
+    public function getListingName()
+    {
+        return $this->listingName;
+    }
+
+
+    public function getStoreName()
+    {
+        return $this->storeName;
     }
 
 

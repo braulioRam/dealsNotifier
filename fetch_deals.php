@@ -11,6 +11,8 @@ $verbose = isset($lineParameters['verbose']);
 Logger::verbose($verbose);
 $storeIdentifier = new StoreIdentifier($lineParameters);
 $storeParser = $storeIdentifier->getStoreParser($lineParameters);
+$listingName = $storeParser->getListingName();
+$storeName = $storeParser->getStoreName();
 $deals = $storeParser->getDeals($lineParameters);
 
 if (empty($deals)) {
@@ -19,4 +21,4 @@ if (empty($deals)) {
 }
 
 $notifier = new EmailNotifier($deals, $lineParameters);
-$notifier->notify('deals');
+$notifier->notify('deals', $storeName, $listingName);
