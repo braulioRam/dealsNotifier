@@ -46,7 +46,7 @@ abstract Class StoreParser {
     public function getDeals()
     {
         $content = $this->getContents();
-        $products = $this->getProducts($content);
+        $products = $this->getProducts($content, $nextPageLink);
         $deals = $this->getDiscounts($products);
 
         return $deals;
@@ -56,7 +56,7 @@ abstract Class StoreParser {
     public function getChanges()
     {
         $content = $this->getContents();
-        $products = $this->getProducts($content);
+        $products = $this->getProducts($content, $nextPageLink);
         $changes = $this->getProductsChanges($products);
 
         return $changes;
@@ -87,5 +87,5 @@ abstract Class StoreParser {
     }
 
 
-    protected abstract function getProducts($content);
+    protected abstract function getProducts($content, &$nextPageLink);
 }

@@ -9,7 +9,7 @@ use Exception;
 Class AmazonParser extends WebStoreParser {
     protected function getNextLink($content)
     {
-        $regex = '@id="pagnNextLink"[^>]+href="(?<next_link>[^"]+)"@is';
+        $regex = '@(?:id="pagnNextLink"[^>]+href="|<li class="a-last"><a href=")(?<next_link>[^"]+)@is';
         $url = false;
         $path = '';
 
@@ -28,14 +28,22 @@ Class AmazonParser extends WebStoreParser {
 
     protected function getProductsFromPage($content)
     {
-        $regex = '@<div class="s-item-container".*?(?=<div class="s-item-container"|</ul>)@is';
+        $content = preg_replace('@id="centerBelowExtraSponsoredLinks".*@is', '', $content);
+        $regex = '@<div (?:class="s-item-container"|data-asin).*?(?=<div (?:class="s-item-container"|data-asin))@is';
 
         if (!preg_match_all($regex, $content, $matches)) {
-            Logger::log("No matches in listing", 'warning');
-            throw new Exception("Exit per source error");
+            Logger::log("No matches in listing, retrying", 'warning');
+            return false;
         }
 
-        foreach ($matches[0] ?: [] as $product) {
+        Logger::log("Items: " . count($matches[0]), 'debug');
+
+        foreach ((array) $matches[0] as $key => $product) {
+            if (stripos($product, 'pagnPrevString') !== false || stripos($product, '<script type="text/javascript">') !== false) {
+                Logger::log("Skipping index: {$key}", 'warning');
+                continue;
+            }
+
             $product = $this->processProduct($product);
 
             if (!empty($product['name']) && !empty($product['url']) && !empty($product['price'])) {
@@ -49,19 +57,22 @@ Class AmazonParser extends WebStoreParser {
 
     protected function processProduct($product)
     {
+        $name = $this->getProductName($product);
+
         return [
-            'name' => $this->getProductName($product),
-            'price' => $this->getProductPrice($product),
+            'name' => $name,
+            'price' => $this->getProductPrice($product, $name),
             'retail_price' => $this->getProductRetailPrice($product),
             'url' => $this->getProductUrl($product),
-            'prime' => $this->getProductIsPrime($product)
+            'prime' => $this->getProductIsPrime($product),
+            'not_available' => stripos($product, 'No disponible por el momento.') === false
         ];
     }
 
 
     protected function getProductName($product)
     {
-        $regex = '@<h2[^>]*>(?<name>[^<]+)</h2>@is';
+        $regex = '@(?:<h2[^>]*>|<span class="a-size-base-plus a-color-base a-text-normal">)(?<name>[^<]+)@is';
 
         if (!preg_match($regex, $product, $match)) {
             Logger::log("No name for item {$product}", 'warning');
@@ -72,12 +83,13 @@ Class AmazonParser extends WebStoreParser {
     }
 
 
-    protected function getProductPrice($product)
+    protected function getProductPrice($product, $name = '')
     {
-        $regex = '@<span class="[^"]*(s|a-color)-price[^"]*">\$?(?<price>[^<]+)@is';
+        $regex = '@(?:<span class="[^"]*(s|a-color)-price[^"]*">|<span class="a-price" data-a-size="l" data-a-color="base"><span class="a-offscreen">|M(?:á|&aacute;)s opciones de compra</span><br><span class="a-color-base">)\$?(?<price>[^<]+)@is';
 
         if (!preg_match($regex, $product, $match)) {
-            Logger::log("No price for item {$product}", 'warning');
+            Logger::log("No price for item {$name}", 'warning');
+            print_r($product);
             return '';
         }
 
@@ -94,7 +106,7 @@ Class AmazonParser extends WebStoreParser {
 
     protected function getProductRetailPrice($product)
     {
-        $regex = '@<span aria-label="Suggested Retail Price:\s*\$?(?<price>[^"]+)@is';
+        $regex = '@(<span aria-label="Suggested Retail Price:\s*|<span class="a-price" data-a-size="b" data-a-strike="true" data-a-color="secondary"><span class="a-offscreen">)\$?(?<price>[^"<]+)@is';
 
         if (!preg_match($regex, $product, $match)) {
             Logger::log("No retail price for item", 'debug');
@@ -107,21 +119,24 @@ Class AmazonParser extends WebStoreParser {
 
     protected function getProductUrl($product)
     {
-        $regex = '@<a class="[^"]*s-access-detail-page[^>]*href="(?<url>[^"]+)"@is';
+        $regex = '@<a class="[^"]*(?:s-access-detail-page|a-link-normal)[^>]*href="(?<url>[^"]+)@is';
 
         if (!preg_match($regex, $product, $match)) {
             Logger::log("No url for item {$product}", 'warning');
             return '';
         }
 
-        return trim($match['url']);
+        $domain = 'https://www.amazon.com.mx';
+        return $domain . str_ireplace('https://www.amazon.com.mx', '', trim(preg_replace('@(.+/dp/[^/]+).*@is', '$1', $match['url'])));
     }
 
 
     protected function getProductIsPrime($product)
     {
-        return stripos($product, '<span class="a-icon-alt">prime</span>') === false
-            ? 0
-            : 1;
+        $regex = '@<span class="a-icon-alt">prime</span>|<i class="a-icon a-icon-prime a-icon-medium" role="img" aria-label="Amazon Prime"></i>@is';
+
+        return preg_match($regex, $product)
+            ? 1
+            : 0;
     }
 }

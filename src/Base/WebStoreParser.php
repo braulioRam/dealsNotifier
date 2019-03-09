@@ -26,16 +26,21 @@ abstract Class WebStoreParser extends StoreParser {
 
         Logger::log('Parsing: ' . $url, 'notice');
 
+        $userAgent = $this->getUserAgent()[array_rand($this->getUserAgent())];
+        $this->curl()->setUserAgent($userAgent);
+        $this->curl->setOpt(CURLOPT_ENCODING , 'gzip');
+        $wait = rand(10, 15);
+        Logger::log('Avoiding banhammer ' . $wait, 'notice');
+        sleep($wait);
         $this->curl()->get($url);
-        $wait = 2;
 
-        while ($this->curl()->error && $tries < 5) {
+        while ($this->curl()->error && $tries < 10) {
             $tries++;
             Logger::log("Can't fetch {$url}, retrying {$tries}", 'warning');
-            Logger::log('Avoiding banhammer', 'notice');
+            Logger::log('Avoiding banhammer ' . $wait, 'notice');
             sleep($wait);
             $this->curl()->get($url);
-            $wait *= 2;
+            $wait += 2;
         }
 
         if ($this->curl()->error) {
@@ -47,16 +52,38 @@ abstract Class WebStoreParser extends StoreParser {
     }
 
 
-    protected function getProducts($content)
+    protected function getUserAgent()
+    {
+        return [
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0',
+            // 'Mozilla/4.0 (compatible; U; MSIE 6.0; Windows NT 5.1)',
+            // 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0',
+            // 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+            // 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36 OPR/38.0.2220.41',
+            // 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36',
+            // 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36'
+        ];
+    }
+
+
+    protected function getProducts($content, &$nextPagePath)
     {
         $products = $this->getProductsFromPage($content);
+        $retries = 1;
+
+        while ($products === false && $retries < 5) {
+            Logger::log('Cooling down 5 min', 'notice');
+            sleep(300);
+            $retries++;
+            $content = $this->getPageContents($nextPagePath);
+            $products = $this->getProductsFromPage($content);
+        }
+
         $nextPagePath = $this->getNextLink($content);
 
         if (!empty($nextPagePath)) {
-            Logger::log('Avoiding banhammer', 'notice');
-            sleep(2);
             $content = $this->getPageContents($nextPagePath);
-            $moreProducts = $this->getProducts($content);
+            $moreProducts = $this->getProducts($content, $nextPagePath);
 
             if ($moreProducts) {
                 $products = array_merge($products, $moreProducts);
