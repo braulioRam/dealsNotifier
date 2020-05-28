@@ -1,0 +1,8 @@
+version: '2'
+services:
+    deals:
+        image: braulioram/deals
+        build:
+            context: .
+        volumes:
+            - ./src:/deals/src

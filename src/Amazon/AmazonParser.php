@@ -1,10 +1,8 @@
 <?php
 namespace braulioRam\dealsNotifier\Amazon;
 
-use Curl\Curl;
 use braulioRam\dealsNotifier\Base\Logger;
 use braulioRam\dealsNotifier\Base\WebStoreParser;
-use Exception;
 
 Class AmazonParser extends WebStoreParser {
     protected function getNextLink($content)
@@ -29,7 +27,7 @@ Class AmazonParser extends WebStoreParser {
     protected function getProductsFromPage($content)
     {
         $content = preg_replace('@id="centerBelowExtraSponsoredLinks".*@is', '', $content);
-        $regex = '@<div (?:class="s-item-container"|data-asin).*?(?=<div (?:class="s-item-container"|data-asin))@is';
+        $regex = '@<div (?:class="s-item-container"|data-asin).*?(?=<div (?:class="s-item-container"|data-asin|class="s-result-list-placeholder))@is';
 
         if (!preg_match_all($regex, $content, $matches)) {
             Logger::log("No matches in listing, retrying", 'warning');
@@ -64,15 +62,14 @@ Class AmazonParser extends WebStoreParser {
             'price' => $this->getProductPrice($product, $name),
             'retail_price' => $this->getProductRetailPrice($product),
             'url' => $this->getProductUrl($product),
-            'prime' => $this->getProductIsPrime($product),
-            'not_available' => stripos($product, 'No disponible por el momento.') === false
+            'prime' => $this->getProductIsPrime($product)        
         ];
     }
 
 
     protected function getProductName($product)
     {
-        $regex = '@(?:<h2[^>]*>|<span class="a-size-base-plus a-color-base a-text-normal">)(?<name>[^<]+)@is';
+        $regex = '@class="s-image"\s+alt="(?<name>[^"]+)@is';
 
         if (!preg_match($regex, $product, $match)) {
             Logger::log("No name for item {$product}", 'warning');

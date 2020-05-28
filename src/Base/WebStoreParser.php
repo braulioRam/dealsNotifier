@@ -29,7 +29,7 @@ abstract Class WebStoreParser extends StoreParser {
         $userAgent = $this->getUserAgent()[array_rand($this->getUserAgent())];
         $this->curl()->setUserAgent($userAgent);
         $this->curl->setOpt(CURLOPT_ENCODING , 'gzip');
-        $wait = rand(10, 15);
+        $wait = rand(1, 3);
         Logger::log('Avoiding banhammer ' . $wait, 'notice');
         sleep($wait);
         $this->curl()->get($url);
@@ -37,6 +37,7 @@ abstract Class WebStoreParser extends StoreParser {
         while ($this->curl()->error && $tries < 10) {
             $tries++;
             Logger::log("Can't fetch {$url}, retrying {$tries}", 'warning');
+            var_dump($this->curl);
             Logger::log('Avoiding banhammer ' . $wait, 'notice');
             sleep($wait);
             $this->curl()->get($url);
@@ -69,6 +70,7 @@ abstract Class WebStoreParser extends StoreParser {
     protected function getProducts($content, &$nextPagePath)
     {
         $products = $this->getProductsFromPage($content);
+        var_dump($products);
         $retries = 1;
 
         while ($products === false && $retries < 5) {

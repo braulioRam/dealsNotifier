@@ -18,7 +18,8 @@ Class Stores {
                 'listings' => [
                     'electric-guitars' => '/b?ie=UTF8&node=14652407011',
                     'guitar-amplifiers' => '/b?ie=UTF8&node=14652402011',
-                    'guitar-effects' => '/b?ie=UTF8&node=14652403011'
+                    'guitar-effects' => '/b?ie=UTF8&node=14652403011',
+                    'cool-headphones' => '/Aud%C3%ADfonos-Marca-6-seleccionados/s?ie=UTF8&page=1&rh=n%3A9687308011%2Cp_89%3AAKG%7CAudio-Technica%7CBose%7CSennheiser%7CSony%7Cbeyerdynamic'
                 ]
             ]
         ];
